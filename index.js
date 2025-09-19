@@ -9,7 +9,15 @@ import { AwwordStand } from "./AwwordStand.js";
 import { Environment } from "./Environment.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
-import { glassSettings, normalMapTexture } from "./GlassSettings.js";
+import {
+    bulbLuminousPowers,
+    dofParams,
+    glassSettings,
+    hemiLuminousIrradiances,
+    lightParams,
+    normalMapTexture,
+    postProcessingParams,
+} from "./config.js";
 import Stats from "three/addons/libs/stats.module.js";
 
 const textures = [
@@ -26,58 +34,6 @@ let previousShadowMap = false;
 const stands = [];
 const clock = new THREE.Clock();
 const stats = new Stats();
-
-// --- Lighting Constants  ---
-// ref for lumens: http://www.power-sure.com/lumens.htm
-const bulbLuminousPowers = {
-    "110000 lm (1000W)": 110000,
-    "3500 lm (300W)": 3500,
-    "1700 lm (100W)": 1700,
-    "800 lm (60W)": 800,
-    "400 lm (40W)": 400,
-    "180 lm (25W)": 180,
-    "20 lm (4W)": 20,
-    Off: 0,
-};
-
-// ref for solar irradiances: https://en.wikipedia.org/wiki/Lux
-const hemiLuminousIrradiances = {
-    "0.0001 lx (Moonless Night)": 0.0001,
-    "0.002 lx (Night Airglow)": 0.002,
-    "0.5 lx (Full Moon)": 0.5,
-    "3.4 lx (City Twilight)": 3.4,
-    "50 lx (Living Room)": 50,
-    "100 lx (Very Overcast)": 100,
-    "350 lx (Office Room)": 350,
-    "400 lx (Sunrise/Sunset)": 400,
-    "1000 lx (Overcast)": 1000,
-    "18000 lx (Daylight)": 18000,
-    "50000 lx (Direct Sun)": 50000,
-};
-
-const lightParams = {
-    shadows: false,
-    exposure: 0.95,
-    bulbPower: Object.keys(bulbLuminousPowers)[6],
-    hemiIrradiance: Object.keys(hemiLuminousIrradiances)[3],
-    color: new THREE.Color("#fafafa"),
-};
-
-// Post-Processing Uniforms
-const blurAmount = uniform(1);
-const blurSize = uniform(2);
-const blurSpread = uniform(4);
-const minDistance = uniform(1);
-const maxDistance = uniform(3);
-const bloomStrength = uniform(0.1);
-const bloomRadius = uniform(0.23);
-const bloomThreshold = uniform(0.373);
-
-// DOF settings
-const pointerCoords = new THREE.Vector2();
-const focusPoint = new THREE.Vector3(0, 1, 0); // World-space focus point
-const targetFocusPoint = new THREE.Vector3(0, 1, 0);
-const focusPointView = uniform(new THREE.Vector3()); // View-space focus point (for shader)
 
 init();
 
@@ -139,14 +95,26 @@ function init() {
     );
 
     const sceneColor = scenePass.getTextureNode();
-    const sceneVelocity = scenePass.getTextureNode("velocity").mul(blurAmount);
+    const sceneVelocity = scenePass.getTextureNode("velocity").mul(postProcessingParams.blurAmount);
     const sceneViewZ = scenePass.getViewZNode();
 
-    const scenePassBlurred = boxBlur(sceneColor, { size: blurSize, separation: blurSpread });
-    const blur = smoothstep(minDistance, maxDistance, sceneViewZ.sub(focusPointView.z).abs());
+    const scenePassBlurred = boxBlur(sceneColor, {
+        size: postProcessingParams.blurSize,
+        separation: postProcessingParams.blurSpread,
+    });
+    const blur = smoothstep(
+        postProcessingParams.minDistance,
+        postProcessingParams.maxDistance,
+        sceneViewZ.sub(dofParams.focusPointView.z).abs()
+    );
     const dofPass = mix(sceneColor, scenePassBlurred, blur);
 
-    bloomNode = bloom(dofPass, bloomStrength, bloomRadius, bloomThreshold);
+    bloomNode = bloom(
+        dofPass,
+        postProcessingParams.bloomStrength,
+        postProcessingParams.bloomRadius,
+        postProcessingParams.bloomThreshold
+    );
     const dofAndBloom = dofPass.add(bloomNode);
     const finalPass = fxaa(dofAndBloom);
 
@@ -210,10 +178,10 @@ const setupGUI = () => {
         });
 
     const dofFolder = gui.addFolder("DOF");
-    dofFolder.add(minDistance, "value", 0, 10).name("Min Distance");
-    dofFolder.add(maxDistance, "value", 0, 10).name("Max Distance");
-    dofFolder.add(blurSize, "value", 1, 10, 1).name("Blur Size");
-    dofFolder.add(blurSpread, "value", 1, 10, 1).name("Blur Spread");
+    dofFolder.add(postProcessingParams.minDistance, "value", 0, 10).name("Min Distance");
+    dofFolder.add(postProcessingParams.maxDistance, "value", 0, 10).name("Max Distance");
+    dofFolder.add(postProcessingParams.blurSize, "value", 1, 10, 1).name("Blur Size");
+    dofFolder.add(postProcessingParams.blurSpread, "value", 1, 10, 1).name("Blur Spread");
 
     const bloomFolder = gui.addFolder("Bloom");
     bloomFolder.add(bloomNode.strength, "value", 0, 1).name("Bloom strength");
@@ -233,8 +201,8 @@ const setupGUI = () => {
 };
 
 function onPointerMove(event) {
-    pointerCoords.x = (event.clientX / window.innerWidth) * 2 - 1;
-    pointerCoords.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    dofParams.pointerCoords.x = (event.clientX / window.innerWidth) * 2 - 1;
+    dofParams.pointerCoords.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
 
 function setupSceneTSL(envMap) {
@@ -297,22 +265,24 @@ async function render() {
         controls.update();
     }
 
-    raycaster.setFromCamera(pointerCoords, camera);
+    raycaster.setFromCamera(dofParams.pointerCoords, camera);
     const intersects = raycaster.intersectObjects(
         stands.map(s => s.mesh),
         true
     );
 
     if (intersects.length > 0) {
-        targetFocusPoint.copy(intersects[0].point);
+        dofParams.targetFocusPoint.copy(intersects[0].point);
     } else {
-        targetFocusPoint.set(0, 1, 0);
+        dofParams.targetFocusPoint.set(0, 1, 0);
     }
 
-    focusPoint.lerp(targetFocusPoint, deltaTime * 5);
+    dofParams.focusPoint.lerp(dofParams.targetFocusPoint, deltaTime * 5);
 
     camera.updateMatrixWorld();
-    focusPointView.value.copy(focusPoint).applyMatrix4(camera.matrixWorldInverse);
+    dofParams.focusPointView.value
+        .copy(dofParams.focusPoint)
+        .applyMatrix4(camera.matrixWorldInverse);
 
     stands.forEach(stand => stand.update(deltaTime, camera));
     if (environment) environment.update(deltaTime);

@@ -1,6 +1,26 @@
 import * as THREE from "three/webgpu";
-import { float, vec3, texture, normalMap, color, Fn, viewportSharedTexture, hue, blendOverlay, posterize, grayscale, saturation, viewportSafeUV, screenUV, checker, uv, time, oscSine, output } from 'three/tsl';
-import { glassSettings, normalMapTexture } from "./GlassSettings.js";
+import {
+    float,
+    vec3,
+    texture,
+    normalMap,
+    color,
+    Fn,
+    viewportSharedTexture,
+    hue,
+    blendOverlay,
+    posterize,
+    grayscale,
+    saturation,
+    viewportSafeUV,
+    screenUV,
+    checker,
+    uv,
+    time,
+    oscSine,
+    output,
+} from "three/tsl";
+import { glassSettings, normalMapTexture } from "./config.js";
 
 export class AwwordStand {
     constructor(position, texturePath, envMap) {
@@ -23,9 +43,8 @@ export class AwwordStand {
         const baseMaterial = new THREE.MeshPhysicalNodeMaterial({
             metalness: 0.7,
             roughness: 0,
-
         });
-        baseMaterial.colorNode = vec3(0,0,0);
+        baseMaterial.colorNode = vec3(0, 0, 0);
 
         // --- Realistic Glass Material ---
         const topMaterial = new THREE.MeshPhysicalNodeMaterial({
@@ -48,47 +67,47 @@ export class AwwordStand {
             //     texture(normalMapTexture),
             //     glassSettings.clearcoatNormalScale
             // ),
-            backdropNode: blendOverlay( viewportSharedTexture().rgb, checker( uv().mul( 10 ) ) )
+            backdropNode: blendOverlay(viewportSharedTexture().rgb, checker(uv().mul(10))),
             // backdropAlphaNode:
         });
 
-    //     topMaterial.castShadowPositionNode = Fn( () => {
+        //     topMaterial.castShadowPositionNode = Fn( () => {
 
-				// 	// optional: add some distortion to the geometry shadow position if needed
+        // 	// optional: add some distortion to the geometry shadow position if needed
 
-				// 	return positionLocal;
+        // 	return positionLocal;
 
-				// } )();
+        // } )();
 
-				// topMaterial.castShadowNode = Fn( () => {
+        // topMaterial.castShadowNode = Fn( () => {
 
-				// 	const refractionVector = refract( positionViewDirection.negate(), normalView, div( 1.0, topMaterial.ior ) ).normalize();
-				// 	const viewZ = normalView.z.pow( causticOcclusion );
+        // 	const refractionVector = refract( positionViewDirection.negate(), normalView, div( 1.0, topMaterial.ior ) ).normalize();
+        // 	const viewZ = normalView.z.pow( causticOcclusion );
 
-				// 	const textureUV = refractionVector.xy.mul( .6 );
+        // 	const textureUV = refractionVector.xy.mul( .6 );
 
-				// 	const causticColor = uniform( topMaterial.color );
-				// 	const chromaticAberrationOffset = normalView.z.pow( - .9 ).mul( .004 );
+        // 	const causticColor = uniform( topMaterial.color );
+        // 	const chromaticAberrationOffset = normalView.z.pow( - .9 ).mul( .004 );
 
-				// 	const causticProjection = vec3(
-				// 		texture( causticMap, textureUV.add( vec2( chromaticAberrationOffset.x.negate(), 0 ) ) ).r,
-				// 		texture( causticMap, textureUV.add( vec2( 0, chromaticAberrationOffset.y.negate() ) ) ).g,
-				// 		texture( causticMap, textureUV.add( vec2( chromaticAberrationOffset.x, chromaticAberrationOffset.y ) ) ).b
-				// 	);
+        // 	const causticProjection = vec3(
+        // 		texture( causticMap, textureUV.add( vec2( chromaticAberrationOffset.x.negate(), 0 ) ) ).r,
+        // 		texture( causticMap, textureUV.add( vec2( 0, chromaticAberrationOffset.y.negate() ) ) ).g,
+        // 		texture( causticMap, textureUV.add( vec2( chromaticAberrationOffset.x, chromaticAberrationOffset.y ) ) ).b
+        // 	);
 
-				// 	return causticProjection.mul( viewZ.mul( 25 ) ).add( viewZ ).mul( causticColor );
+        // 	return causticProjection.mul( viewZ.mul( 25 ) ).add( viewZ ).mul( causticColor );
 
-				// } )();
+        // } )();
 
         // const topMaterial = new THREE.MeshPhysicalNodeMaterial();
-				// topMaterial.side = THREE.DoubleSide;
-				// topMaterial.transparent = true;
-				// topMaterial.color = new THREE.Color( 0xFFD700 );
-				// topMaterial.transmission = 1;
-				// topMaterial.thickness = .25;
-				// topMaterial.ior = 1.5;
-				// topMaterial.metalness = 0;
-				// topMaterial.roughness = .1;
+        // topMaterial.side = THREE.DoubleSide;
+        // topMaterial.transparent = true;
+        // topMaterial.color = new THREE.Color( 0xFFD700 );
+        // topMaterial.transmission = 1;
+        // topMaterial.thickness = .25;
+        // topMaterial.ior = 1.5;
+        // topMaterial.metalness = 0;
+        // topMaterial.roughness = .1;
 
         // Base Geometry
         const baseGeometry = new THREE.BoxGeometry(this.radius, baseHeight, this.radius);
@@ -105,9 +124,9 @@ export class AwwordStand {
         imageTexture.flipY = true;
 
         const planeMaterial = new THREE.MeshStandardNodeMaterial({
-          side: THREE.DoubleSide,
-          colorNode: texture(imageTexture),
-          roughness: 0.5,
+            side: THREE.DoubleSide,
+            colorNode: texture(imageTexture),
+            roughness: 0.5,
         });
         // planeMaterial.emissionNode = Fn(() => {
         //     return vec3(1.0);
