@@ -1,0 +1,21 @@
+{
+  "name": "awww",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/howler": "^2.2.12",
+    "@types/three": "^0.180.0",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.7"
+  },
+  "dependencies": {
+    "howler": "^2.2.4",
+    "three": "^0.180.0"
+  }
+}

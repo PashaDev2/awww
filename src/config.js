@@ -1,10 +1,10 @@
 import { uniform } from "three/tsl";
 import * as THREE from "three";
 
-const normalTexturePath = "assets/textures/normal.jpg";
+const normalTexturePath = "/textures/normal.jpg";
 const loader = new THREE.TextureLoader();
 
-const envTexturePath = "assets/textures/env1.jpg";
+const envTexturePath = "/textures/env1.jpg";
 
 // Load the normal map once and export it so it can be shared
 export const normalMapTexture = loader.load(normalTexturePath);
@@ -28,13 +28,12 @@ export const glassSettings = {
     clearcoatNormalScale: uniform(0.3),
     normalScale: uniform(0.5),
     color: uniform(new THREE.Color(0xffffff)),
-    dispersion: uniform(5.0),
+    dispersion: uniform(0.25), // Adjusted for a more realistic effect
     attenuationColor: uniform(new THREE.Color(0xffffff)),
     attenuationDistance: uniform(1),
     envMapIntensity: uniform(1),
     envMap: envTexture,
     opacity: uniform(1),
-    transmission: uniform(1),
     specularIntensity: uniform(1),
     specularColor: uniform(new THREE.Color(0xffffff)),
 };
@@ -93,4 +92,17 @@ export const dofParams = {
     focusPoint: new THREE.Vector3(0, 1, 0), // World-space focus point
     targetFocusPoint: new THREE.Vector3(0, 1, 0),
     focusPointView: uniform(new THREE.Vector3()), // View-space focus point (for shader)
+    focusDistance: uniform(0),
 };
+
+// --- Asset Paths ---
+export const transitionTexturePaths = [
+    "/textures/transition/transition1.png",
+    "/textures/transition/transition2.png",
+    "/textures/transition/transition3.png",
+    "/textures/transition/transition4.png",
+    "/textures/transition/transition5.png",
+    "/textures/transition/transition6.png",
+];
+
+export const hdrPath = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venice_sunset_1k.hdr";
