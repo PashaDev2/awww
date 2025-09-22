@@ -11,7 +11,17 @@ export class Stand1Environment {
 
     createRoom() {
         const roomGroup = new THREE.Group();
-        const roomRadius = 25;
+
+        const directionalLight = new THREE.DirectionalLight("#005b96", 0.25); // Soft blueish, low intensity
+        directionalLight.position.set(5, 10, 7);
+        directionalLight.castShadow = true;
+        directionalLight.shadow.mapSize.width = 1024;
+        directionalLight.shadow.mapSize.height = 1024;
+        directionalLight.shadow.camera.near = 1;
+        directionalLight.shadow.camera.far = 50;
+        roomGroup.add(directionalLight);
+
+        const roomRadius = 35;
         const roomHeight = 10;
 
         // --- Floor ---
@@ -20,7 +30,7 @@ export class Stand1Environment {
         roomGroup.add(reflection.target);
 
         // --- Water Material ---
-        const roughness = 0.2; // Lower roughness for sharper reflections
+        const roughness = 0.9; // Lower roughness for sharper reflections
         const normalScale = 0.3;
 
         // Animate UVs to create moving ripples
@@ -79,16 +89,21 @@ export class Stand1Environment {
         wallMesh.position.y = roomHeight / 2 - 0.01;
         roomGroup.add(wallMesh);
 
-        const innerRadius = 6; // Minimum distance from center (donut hole)
-        this.gltfModel.traverse(child => {
-            if (child.isMesh) {
-                // Place within donut (annulus) area: innerRadius < r < roomRadius - 1
-                const angle = Math.random() * Math.PI * 2;
-                const radius = innerRadius + Math.random() * (roomRadius - 1 - innerRadius);
-                child.position.x = Math.cos(angle) * radius;
-                child.position.z = Math.sin(angle) * radius;
-                child.position.y = 0;
-            }
+        const innerRadius = 10; // Minimum distance from center (donut hole)
+        const outerRadius = 30;
+        this.gltfModel.children.forEach(child => {
+            // For each mesh, calculate a new random position in the donut area
+            const angle = Math.random() * Math.PI * 2;
+            const radius = innerRadius + Math.random() * (outerRadius - innerRadius);
+
+            child.position.set(
+                Math.cos(angle) * radius,
+                0, // Place it on the floor
+                Math.sin(angle) * radius
+            );
+
+            // Optional: Give each a random rotation
+            child.rotation.y = Math.random() * Math.PI * 2;
         });
 
         roomGroup.add(this.gltfModel);

@@ -1,5 +1,5 @@
 import * as THREE from "three/webgpu";
-import { pass, uniform, mrt, velocity, output, mix, smoothstep, texture } from "three/tsl";
+import { pass, uniform, mrt, velocity, output, mix, smoothstep, texture, vec3 } from "three/tsl";
 import { transition } from "three/addons/tsl/display/TransitionNode.js";
 import { boxBlur } from "three/addons/tsl/display/boxBlur.js";
 import { fxaa } from "three/addons/tsl/display/FXAANode.js";
@@ -14,12 +14,17 @@ import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 import TWEEN, { Tween } from "three/addons/libs/tween.module.js";
 import {
+    causticTexture,
+    diffuseTexture,
     dofParams,
+    envTexture,
+    envTexture2,
     glassSettings,
     hdrPath,
     normalMapTexture,
     postProcessingParams,
     transitionTexturePaths,
+    waterNormalMapTexture,
 } from "./config.js";
 import Stats from "three/addons/libs/stats.module.js";
 import { audioManager } from "./Audio/Audio.js";
@@ -158,7 +163,8 @@ function createMainScene() {
         volume: 0.5,
     });
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+    // scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
     const environment = new Environment(normalMapTexture, normalMapTexture);
     scene.add(environment.mesh);
 
@@ -201,7 +207,10 @@ function createStandScene(standId: number) {
     let environment;
     switch (standId) {
         case 1:
-            environment = new Stand1Environment(normalMapTexture, normalMapTexture, gltfModel);
+            environment = new Stand1Environment(normalMapTexture, waterNormalMapTexture, gltfModel);
+            // scene.environment = envTexture2;
+            scene.background = new THREE.Color("black");
+            scene.fog = new THREE.Fog("#011f4b", 15, 35);
             break;
         case 2:
             environment = new Stand2Environment(normalMapTexture, normalMapTexture, gltfModel);
@@ -336,9 +345,9 @@ function startTransition(target) {
         sceneWeAreLeaving.stands.forEach(stand => {
             // It's good practice to also reset the visual state
             stand.isSelected = false;
-            if (stand.waveSound && stand.waveSound.isPlaying) {
-                stand.waveSound.stop();
-            }
+            // if (stand.waveSound) {
+            //     stand.waveSound.stop();
+            // }
         });
     }
 
@@ -512,6 +521,12 @@ async function render() {
             while (intersectedObject) {
                 if (intersectedObject.userData.isStand) {
                     hoveredStand = intersectedObject.userData.parentStand;
+
+                    // Update the isSelected state for ALL stands in the scene
+                    activeSceneData.stands.forEach(stand => {
+                        stand.isSelected = stand === hoveredStand;
+                    });
+
                     const isCanBeClicked =
                         isClicked &&
                         (transitionController.transition === 0 ||
@@ -528,11 +543,6 @@ async function render() {
                 intersectedObject = intersectedObject.parent;
             }
         }
-
-        // Update the isSelected state for ALL stands in the scene
-        activeSceneData.stands.forEach(stand => {
-            stand.isSelected = stand === hoveredStand;
-        });
 
         // --- DOF Logic (can be combined with hover detection) ---
         if (hoveredStand) {

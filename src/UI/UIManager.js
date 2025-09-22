@@ -6,6 +6,7 @@ class UIManager {
 
         this.uiContainer = null;
         this.activeMessages = new Map(); // Use a Map to track persistent messages by ID
+        this.theme = "default"; // Default theme
         this.init();
 
         UIManager.instance = this;
@@ -16,6 +17,15 @@ class UIManager {
         this.uiContainer = document.createElement("div");
         this.uiContainer.className = "ui-container";
         document.body.appendChild(this.uiContainer);
+    }
+
+    /**
+     * Sets the theme for the UI.
+     * @param {string} themeName - The name of the theme to apply ('default', 'white', 'black').
+     */
+    setTheme(themeName) {
+        this.theme = themeName;
+        this.injectCSS();
     }
 
     /**
@@ -104,6 +114,7 @@ class UIManager {
 
     // Helper to wrap each character in a span for the animation
     formatContentForAnimation(content) {
+        return content;
         return content
             .split("")
             .map((char, index) => {
@@ -115,82 +126,140 @@ class UIManager {
             .join("");
     }
 
+    getThemeCSS() {
+        const themes = {
+            default: `
+                :root {
+                    --bg-gradient-start: #121212;
+                    --bg-gradient-end: #050505;
+                    --text-color: #EAEAEA;
+                    --border-color: #333333;
+                    --shadow-color: #333333;
+                    --inset-shadow-color: #333333;
+                    --text-shadow-color: #333333;
+                    --close-button-color: #888888;
+                    --close-button-hover-color: #ffffff;
+                    --close-button-hover-shadow-color: red;
+                }
+            `,
+            white: `
+                :root {
+                    --bg-gradient-start: rgba(245, 245, 250, 0.9);
+                    --bg-gradient-end: rgba(235, 235, 245, 0.95);
+                    --text-color: #3a3a3a;
+                    --border-color: rgba(0, 0, 0, 0.1);
+                    --shadow-color: rgba(0, 0, 0, 0.1);
+                    --inset-shadow-color: rgba(255, 255, 255, 0.5);
+                    --text-shadow-color: rgba(58, 58, 58, 0.2);
+                    --close-button-color: #888888;
+                    --close-button-hover-color: #000000;
+                    --close-button-hover-shadow-color: #3a3a3a;
+                }
+            `,
+            black: `
+                :root {
+                    --bg-gradient-start: rgba(10, 10, 10, 0.9);
+                    --bg-gradient-end: rgba(0, 0, 0, 0.95);
+                    --text-color: #00ff00;
+                    --border-color: rgba(0, 255, 0, 0.3);
+                    --shadow-color: rgba(0, 255, 0, 0.2);
+                    --inset-shadow-color: rgba(0, 255, 0, 0.1);
+                    --text-shadow-color: rgba(0, 255, 0, 0.7);
+                    --close-button-color: rgba(0, 255, 0, 0.7);
+                    --close-button-hover-color: #ffffff;
+                    --close-button-hover-shadow-color: #00ff00;
+                }
+            `,
+        };
+        return themes[this.theme] || themes["default"];
+    }
+
     injectCSS() {
+        const existingStyle = document.getElementById("ui-manager-styles");
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
         const style = document.createElement("style");
+        style.id = "ui-manager-styles";
         style.textContent = `
-            .ui-container {
-                position: fixed;
-                top: 40px;
-                left: 40px;
-                right: 40px;
-                bottom: 40px;
-                pointer-events: none;
-                z-index: 1000;
-                display: flex;
-                justify-content: space-between;
-                align-items: flex-start;
-            }
+        ${this.getThemeCSS()}
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+        .ui-container {
+            position: fixed;
+            bottom: 50px;
+            left: 50px;
+            right: 50px;
+            pointer-events: none;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
 
-            .ui-message {
-                background-color: rgba(15, 15, 20, 0.8);
-                backdrop-filter: blur(10px);
-                color: #fafafa;
-                padding: 12px 20px;
-                border-radius: 8px;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-                font-size: 16px;
-                border: 1px solid rgba(255, 255, 255, 0.1);
-                display: flex;
-                align-items: center;
-                gap: 15px;
-                transition: opacity 0.5s ease, transform 0.5s ease;
-                opacity: 0;
-            }
-            
-            .ui-message-left {
-                transform: translateX(-20px);
-                align-self: flex-start;
-            }
+        .ui-message {
+            background: linear-gradient(145deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            backdrop-filter: blur(10px);
+            color: var(--text-color);
+            padding: 16px 28px;
+            border-radius: 4px;
+            // font-family: "Roboto", Arial, sans-serif;
+            font-size: 1.1em;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 20px var(--shadow-color), inset 0 0 8px var(--inset-shadow-color);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            opacity: 0;
+            text-shadow: 0 0 6px var(--text-shadow-color);
+            clip-path: polygon(0% 0%, 96% 0%, 100% 30%, 100% 100%, 4% 100%, 0% 70%);
+        }
+        
+        .ui-message-left {
+            transform: translateX(-30px);
+            align-self: flex-start;
+        }
 
-            .ui-message-right {
-                transform: translateX(20px);
-                align-self: flex-start;
-            }
-            
-            .ui-message.visible {
-                opacity: 1;
-                transform: translateX(0);
-            }
+        .ui-message-right {
+            transform: translateX(30px);
+            align-self: flex-end;
+            clip-path: polygon(4% 0%, 100% 0%, 100% 70%, 96% 100%, 0% 100%, 0% 30%);
+        }
+        
+        .ui-message.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
 
-            .message-content {
-                overflow: hidden;
-            }
-            
-            .message-content span {
-                display: inline-block;
-                opacity: 0;
-                transform: translateY(15px);
-                transition: opacity 0.4s ease, transform 0.4s ease;
-            }
+        .message-content span {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
 
-            .ui-message.visible .message-content span {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .ui-message.visible .message-content span {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-            .close-button {
-                font-size: 24px;
-                line-height: 1;
-                font-weight: 300;
-                color: rgba(255, 255, 255, 0.5);
-                cursor: pointer;
-                pointer-events: all;
-                transition: color 0.2s ease, transform 0.2s ease;
-            }
-            .close-button:hover {
-                color: white;
-                transform: scale(1.1);
-            }
+        .close-button {
+            font-family: 'Arial', sans-serif;
+            font-size: 26px;
+            line-height: 1;
+            font-weight: bold;
+            color: var(--close-button-color);
+            cursor: pointer;
+            pointer-events: all;
+            transition: color 0.3s ease, transform 0.3s ease, text-shadow 0.3s ease;
+        }
+        .close-button:hover {
+            color: var(--close-button-hover-color);
+            transform: rotate(180deg) scale(1.1);
+            text-shadow: 0 0 12px var(--close-button-hover-shadow-color);
+        }
         `;
         document.head.appendChild(style);
     }

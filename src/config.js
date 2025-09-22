@@ -10,8 +10,22 @@ const envTexturePath = "/textures/env1.jpg";
 export const normalMapTexture = loader.load(normalTexturePath);
 normalMapTexture.wrapS = THREE.RepeatWrapping;
 normalMapTexture.wrapT = THREE.RepeatWrapping;
+export const waterNormalMapTexture = loader.load("/textures/normalWatter.jpg");
+waterNormalMapTexture.wrapS = THREE.RepeatWrapping;
+waterNormalMapTexture.wrapT = THREE.RepeatWrapping;
+
+export const causticTexture = loader.load("/textures/caustic.jpeg");
+causticTexture.wrapS = THREE.RepeatWrapping;
+causticTexture.wrapT = THREE.RepeatWrapping;
+
+export const diffuseTexture = loader.load("/textures/diffuse.jpg");
+diffuseTexture.wrapS = THREE.RepeatWrapping;
+diffuseTexture.wrapT = THREE.RepeatWrapping;
+
+export const envTexture2 = loader.load("/textures/alien-panels_preview.jpg");
 
 export const envTexture = loader.load(envTexturePath);
+envTexture.mapping = THREE.EquirectangularReflectionMapping;
 // envTexture.wrapS = THREE.RepeatWrapping;
 // envTexture.wrapT = THREE.RepeatWrapping;
 envTexture.mapping = THREE.EquirectangularReflectionMapping;
