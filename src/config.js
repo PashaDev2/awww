@@ -3,32 +3,31 @@ import * as THREE from "three";
 
 const normalTexturePath = "/textures/normal.jpg";
 const loader = new THREE.TextureLoader();
-
 const envTexturePath = "/textures/env1.jpg";
 
 // Load the normal map once and export it so it can be shared
-export const normalMapTexture = loader.load(normalTexturePath);
-normalMapTexture.wrapS = THREE.RepeatWrapping;
-normalMapTexture.wrapT = THREE.RepeatWrapping;
-export const waterNormalMapTexture = loader.load("/textures/normalWatter.jpg");
-waterNormalMapTexture.wrapS = THREE.RepeatWrapping;
-waterNormalMapTexture.wrapT = THREE.RepeatWrapping;
+// export const normalMapTexture = loader.load(normalTexturePath);
+// normalMapTexture.wrapS = THREE.RepeatWrapping;
+// normalMapTexture.wrapT = THREE.RepeatWrapping;
+// export const waterNormalMapTexture = loader.load("/textures/normalWatter.jpg");
+// waterNormalMapTexture.wrapS = THREE.RepeatWrapping;
+// waterNormalMapTexture.wrapT = THREE.RepeatWrapping;
 
-export const causticTexture = loader.load("/textures/caustic.jpeg");
-causticTexture.wrapS = THREE.RepeatWrapping;
-causticTexture.wrapT = THREE.RepeatWrapping;
+// export const causticTexture = loader.load("/textures/caustic.jpeg");
+// causticTexture.wrapS = THREE.RepeatWrapping;
+// causticTexture.wrapT = THREE.RepeatWrapping;
 
-export const diffuseTexture = loader.load("/textures/diffuse.jpg");
-diffuseTexture.wrapS = THREE.RepeatWrapping;
-diffuseTexture.wrapT = THREE.RepeatWrapping;
+// export const diffuseTexture = loader.load("/textures/diffuse.jpg");
+// diffuseTexture.wrapS = THREE.RepeatWrapping;
+// diffuseTexture.wrapT = THREE.RepeatWrapping;
 
-export const envTexture2 = loader.load("/textures/alien-panels_preview.jpg");
+// export const envTexture2 = loader.load("/textures/alien-panels_preview.jpg");
 
-export const envTexture = loader.load(envTexturePath);
-envTexture.mapping = THREE.EquirectangularReflectionMapping;
+// export const envTexture = loader.load(envTexturePath);
+// envTexture.mapping = THREE.EquirectangularReflectionMapping;
 // envTexture.wrapS = THREE.RepeatWrapping;
 // envTexture.wrapT = THREE.RepeatWrapping;
-envTexture.mapping = THREE.EquirectangularReflectionMapping;
+// envTexture.mapping = THREE.EquirectangularReflectionMapping;
 
 // Export all material properties as uniforms so they can be controlled globally
 export const glassSettings = {
@@ -46,7 +45,7 @@ export const glassSettings = {
     attenuationColor: uniform(new THREE.Color(0xffffff)),
     attenuationDistance: uniform(1),
     envMapIntensity: uniform(1),
-    envMap: envTexture,
+    // envMap: envTexture,
     opacity: uniform(1),
     specularIntensity: uniform(1),
     specularColor: uniform(new THREE.Color(0xffffff)),

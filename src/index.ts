@@ -14,17 +14,11 @@ import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 import TWEEN, { Tween } from "three/addons/libs/tween.module.js";
 import {
-    causticTexture,
-    diffuseTexture,
     dofParams,
-    envTexture,
-    envTexture2,
     glassSettings,
     hdrPath,
-    normalMapTexture,
     postProcessingParams,
     transitionTexturePaths,
-    waterNormalMapTexture,
 } from "./config.js";
 import Stats from "three/addons/libs/stats.module.js";
 import { audioManager } from "./Audio/Audio.js";
@@ -38,8 +32,21 @@ let renderer: THREE.WebGPURenderer,
     bloomNode: any,
     transitionEffect: any;
 
-let hdrMap: THREE.Texture;
-let gltfModel: THREE.Group;
+// This object will hold all our loaded assets
+const assets = {
+    hdrMap: null,
+    gltfModel: null,
+    transitionTextures: [],
+    configTextures: {
+        normalMap: null,
+        waterNormalMap: null,
+        caustic: null,
+        diffuse: null,
+        env: null,
+        env2: null,
+    },
+};
+
 const scenes: {
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
@@ -49,7 +56,6 @@ const scenes: {
     environment: Environment | Stand1Environment | Stand2Environment | Stand3Environment;
 }[] = [];
 
-const transitionTextures: THREE.Texture[] = [];
 const clock = new THREE.Clock();
 const stats = new Stats();
 let transitionActive = false;
@@ -59,8 +65,7 @@ const focusPointInViewSpace = new THREE.Vector3();
 let activeSceneIndex = 0;
 let targetSceneIndex = 0;
 let scenesInitialized = false;
-// let sceneControllerGUI;
-let currentTransitionTween: any = null; // This will hold the active tween object
+let currentTransitionTween: any = null;
 let scenePasses: any[] = [];
 let isClicked = false;
 let clickPos = new THREE.Vector2();
@@ -97,12 +102,7 @@ const transitionController = {
 init();
 
 function init() {
-    uiManager.showMessage({
-        id: "loading-screen",
-        content: "Loading...",
-        persistent: true,
-    });
-
+    // --- Setup basic scene elements ---
     renderer = new THREE.WebGPURenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -114,31 +114,101 @@ function init() {
     renderer.domElement.addEventListener("mousedown", onMouseDown);
     renderer.domElement.addEventListener("mouseup", onMouseUp);
 
-    const dracoLoader = new DRACOLoader();
+    window.addEventListener("resize", onWindowResize);
+
+    // --- Start the loading process ---
+    loadAssets();
+}
+
+function loadAssets() {
+    // --- Use a LoadingManager to track all loads ---
+    const loadingManager = new THREE.LoadingManager();
+
+    loadingManager.onStart = (url, itemsLoaded, itemsTotal) => {
+        uiManager.showMessage({
+            id: "loading-screen",
+            content: "Loading... 0%",
+            persistent: true,
+        });
+    };
+
+    loadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
+        const progress = Math.round((itemsLoaded / itemsTotal) * 100);
+        uiManager.showMessage({
+            id: "loading-screen",
+            content: `Loading... ${progress}%`,
+            persistent: true,
+        });
+    };
+
+    loadingManager.onLoad = () => {
+        // --- All assets are loaded, now we can initialize the scene ---
+        // Post-process loaded assets
+        assets.hdrMap.mapping = THREE.EquirectangularReflectionMapping;
+
+        // Update config settings with loaded textures where necessary
+        glassSettings.envMap = assets.configTextures.env;
+
+        // Initialize scenes, post-processing, and GUI
+        setupScenes();
+        setupPostProcessing();
+        setupGUI();
+        scenesInitialized = true;
+        uiManager.hideMessage("loading-screen");
+    };
+
+    loadingManager.onError = url => {
+        console.error("There was an error loading " + url);
+        uiManager.showMessage({
+            id: "loading-screen",
+            content: `Error loading assets. Please refresh.`,
+            persistent: true,
+        });
+    };
+
+    // --- Initialize Loaders with the manager ---
+    const dracoLoader = new DRACOLoader(loadingManager);
     dracoLoader.setDecoderPath("https://www.gstatic.com/draco/v1/decoders/");
-    const gltfLoader = new GLTFLoader();
+    const gltfLoader = new GLTFLoader(loadingManager);
     gltfLoader.setDRACOLoader(dracoLoader);
+    const textureLoader = new THREE.TextureLoader(loadingManager);
+    const hdrLoader = new HDRLoader(loadingManager);
 
+    // --- Start Loading All Assets ---
+    // GLB Model
     gltfLoader.load("/models/env.glb", gltf => {
-        gltfModel = gltf.scene;
-        const loader = new THREE.TextureLoader();
-        transitionTexturePaths.forEach(path => transitionTextures.push(loader.load(path)));
+        assets.gltfModel = gltf.scene;
+    });
 
-        new HDRLoader().load(hdrPath, texture => {
-            texture.mapping = THREE.EquirectangularReflectionMapping;
-            hdrMap = texture;
-            setupScenes();
-            setupPostProcessing();
-            setupGUI();
-            scenesInitialized = true;
-            uiManager.hideMessage("loading-screen");
+    // HDR Environment
+    hdrLoader.load(hdrPath, texture => {
+        assets.hdrMap = texture;
+    });
+
+    // Transition Textures
+    transitionTexturePaths.forEach(path => {
+        textureLoader.load(path, texture => {
+            assets.transitionTextures.push(texture);
         });
     });
 
-    window.addEventListener("resize", onWindowResize);
+    // Config Textures
+    assets.configTextures.normalMap = textureLoader.load("/textures/normal.jpg", tex => {
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+    });
+    assets.configTextures.waterNormalMap = textureLoader.load("/textures/normalWater.jpg", tex => {
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+    });
+
+    assets.configTextures.env = textureLoader.load("/textures/env1.jpg", tex => {
+        tex.mapping = THREE.EquirectangularReflectionMapping;
+    });
+    assets.configTextures.env2 = textureLoader.load("/textures/alien-panels_preview.jpg");
 }
 
-// --- Scene Creation (No changes here) ---
+// --- Scene Creation (Updated to use loaded assets) ---
 function createMainScene() {
     const scene = new THREE.Scene();
     scene.environment = glassSettings.envMap;
@@ -149,30 +219,27 @@ function createMainScene() {
         1000
     );
     camera.position.set(5, 4, 5);
-    // camera.add(listener);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.target.set(0, 1, 0);
     const raycaster = new THREE.Raycaster();
 
-    // Initialize the AudioManager
     audioManager.initialize(camera);
+    audioManager.load2DSound("energy", "/sounds/energy-hum.mp3", { loop: true, volume: 0.5 });
 
-    // Load 2D sounds
-    audioManager.load2DSound("energy", "/sounds/energy-hum.mp3", {
-        loop: true,
-        volume: 0.5,
-    });
-
-    // scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-
-    const environment = new Environment(normalMapTexture, normalMapTexture);
+    const environment = new Environment(
+        assets.configTextures.normalMap,
+        assets.configTextures.normalMap
+    );
     scene.add(environment.mesh);
 
-    // Clear the global stands array and repopulate it from the config
     const stands: AwwordStand[] = [];
     standConfigurations.forEach(config => {
-        // The 'id' from the config is now correctly used as the sceneIndex
-        const stand = new AwwordStand(config.position, config.texturePath, hdrMap, config.id);
+        const stand = new AwwordStand(
+            config.position,
+            config.texturePath,
+            assets.hdrMap,
+            config.id
+        );
         scene.add(stand.mesh);
         stands.push(stand);
     });
@@ -194,32 +261,46 @@ function createStandScene(standId: number) {
     const raycaster = new THREE.Raycaster();
     scene.add(new THREE.AmbientLight(0xffffff, 0.3));
 
-    // Find the configuration for the requested stand ID
     const config = standConfigurations.find(c => c.id === standId);
     if (!config) {
         console.error(`No configuration found for standId: ${standId}`);
         return;
     }
 
-    const stand = new AwwordStand(new THREE.Vector3(0, 0, 0), config.texturePath, hdrMap, standId);
+    const stand = new AwwordStand(
+        new THREE.Vector3(0, 0, 0),
+        config.texturePath,
+        assets.hdrMap,
+        standId
+    );
     scene.add(stand.mesh);
 
     let environment;
     switch (standId) {
         case 1:
-            environment = new Stand1Environment(normalMapTexture, waterNormalMapTexture, gltfModel);
-            // scene.environment = envTexture2;
+            environment = new Stand1Environment(
+                assets.configTextures.normalMap,
+                assets.configTextures.waterNormalMap,
+                assets.gltfModel
+            );
             scene.background = new THREE.Color("black");
             scene.fog = new THREE.Fog("#011f4b", 15, 35);
             break;
         case 2:
-            environment = new Stand2Environment(normalMapTexture, normalMapTexture, gltfModel);
+            environment = new Stand2Environment(
+                assets.configTextures.normalMap,
+                assets.configTextures.normalMap,
+                assets.gltfModel
+            );
             break;
         case 3:
-            environment = new Stand3Environment(normalMapTexture, normalMapTexture, gltfModel);
+            environment = new Stand3Environment(
+                assets.configTextures.normalMap,
+                assets.configTextures.normalMap,
+                assets.gltfModel
+            );
             break;
         default:
-            // Optional: fallback for any other case
             console.warn(`No specific environment for standId: ${standId}`);
             break;
     }
@@ -228,17 +309,13 @@ function createStandScene(standId: number) {
         scene.add(environment.mesh);
     }
 
-    // Return the environment so its update loop can be called
     return { scene, camera, controls, stands: [stand], raycaster, environment };
 }
 
 function setupScenes() {
     scenes.push(createMainScene()); // Scene 0
 
-    // Create detail scenes based on the configuration array
     standConfigurations.forEach(config => {
-        // Ensure scenes are added in the correct order to match their ID
-        // This line assumes your stand IDs are 1, 2, 3...
         const id: number = config.id;
         const standScene = createStandScene(config.id);
         if (standScene) {
@@ -288,27 +365,17 @@ function setupPostProcessing() {
         const sPass = prepareScenePass(sceneData.scene, sceneData.camera, isFirst);
         scenePasses.push(sPass);
     });
-
-    // transitionEffect = transition(
-    //     null, // We'll set these inputs dynamically
-    //     null,
-    //     texture(transitionTextures[transitionController.texture]),
-    //     transitionController._transition,
-    //     transitionController.threshold,
-    //     transitionController._useTexture
-    // );
-
     postprocessing.outputNode = scenePasses[0];
 }
 
 function startTransition(target) {
-    const fromSceneIndex = activeSceneIndex; // Correctly capture the outgoing scene index
+    const fromSceneIndex = activeSceneIndex;
     targetSceneIndex = target;
     if (targetSceneIndex === fromSceneIndex || transitionActive) return;
 
     transitionController.texture = target + 1;
 
-    uiManager.hideMessage("scene-context-message"); // Hide any previous context message
+    uiManager.hideMessage("scene-context-message");
     uiManager.hideMessage("hover-info");
 
     if (targetSceneIndex === 0) {
@@ -319,7 +386,6 @@ function startTransition(target) {
             duration: 1500,
         });
     } else {
-        // This is a persistent message with a close button
         uiManager.showMessage({
             id: "scene-context-message",
             content: `Viewing Stand ${targetSceneIndex}`,
@@ -327,7 +393,6 @@ function startTransition(target) {
             persistent: true,
             showCloseButton: true,
             onClose: () => {
-                // The callback triggers a transition back to the main scene
                 startTransition(0);
             },
         });
@@ -339,44 +404,35 @@ function startTransition(target) {
         currentTransitionTween.stop();
     }
 
-    // --- Stop sounds from the outgoing scene ---
-    const sceneWeAreLeaving = scenes[fromSceneIndex]; // Use fromSceneIndex here
+    const sceneWeAreLeaving = scenes[fromSceneIndex];
     if (sceneWeAreLeaving && sceneWeAreLeaving.stands) {
         sceneWeAreLeaving.stands.forEach(stand => {
-            // It's good practice to also reset the visual state
             stand.isSelected = false;
-            // if (stand.waveSound) {
-            //     stand.waveSound.stop();
-            // }
         });
     }
 
-    // Immediately update the application's true state.
     activeSceneIndex = targetSceneIndex;
 
-    const toScene = scenes[fromSceneIndex]; // The new scene is the target
-    const fromScene = scenes[activeSceneIndex]; // The old scene is the source
+    const toScene = scenes[fromSceneIndex];
+    const fromScene = scenes[activeSceneIndex];
 
     let oldPostprocessing = postprocessing;
-
     postprocessing = null;
-
     postprocessing = new THREE.PostProcessing(renderer);
 
-    const toPass = prepareScenePass(toScene.scene, toScene.camera); // Pass for the scene we are going TO
-    const fromPass = prepareScenePass(fromScene.scene, fromScene.camera); // Pass for the scene we are coming FROM
+    const toPass = prepareScenePass(toScene.scene, toScene.camera);
+    const fromPass = prepareScenePass(fromScene.scene, fromScene.camera);
 
     const transitionEffect = transition(
-        toPass, // 'A' is the scene we are transitioning TO
-        fromPass, // 'B' is the scene we are transitioning FROM
-        texture(transitionTextures[transitionController.texture]),
+        toPass,
+        fromPass,
+        texture(assets.transitionTextures[transitionController.texture]),
         transitionController._transition,
         transitionController.threshold,
         transitionController._useTexture
     );
     postprocessing.outputNode = transitionEffect;
 
-    // Reset the transition value to start from a fully visible state.
     transitionController.transition = 1;
     transitionController._transition.value = 1;
 
@@ -390,11 +446,7 @@ function startTransition(target) {
             oldPostprocessing = null;
             currentTransitionTween = null;
             transitionActive = false;
-            // Once the transition is complete, set the post-processing
-            // output directly to the new active scene's pass. This
-            // simplifies the render loop and removes the inactive transition effect.
             postprocessing.outputNode = toPass;
-
             uiManager.hideMessage("transition-info");
         })
         .start();
@@ -414,16 +466,8 @@ function setupGUI() {
         .onChange(value => startTransition(value));
 
     sceneFolder
-        .add(transitionController, "texture", {
-            1: 0,
-            2: 1,
-            3: 2,
-            4: 3,
-            5: 4,
-            6: 5,
-        })
+        .add(transitionController, "texture", { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5 })
         .name("Transition Texture");
-
     sceneFolder.open();
 
     const glassFolder = gui.addFolder("Glass");
@@ -446,14 +490,16 @@ function setupGUI() {
         .add({ normalRepeat: 1 }, "normalRepeat", 1, 4, 1)
         .name("Normal Repeat")
         .onChange(val => {
-            normalMapTexture.repeat.set(val, val);
+            // Use the asset loaded by the manager
+            assets.configTextures.normalMap.repeat.set(val, val);
         });
+
     const dofFolder = gui.addFolder("DOF");
-    // You can now control the focus falloff with these GUI elements
     dofFolder.add(postProcessingParams.minDistance, "value", 0, 10).name("Min Distance");
     dofFolder.add(postProcessingParams.maxDistance, "value", 0, 10).name("Max Distance");
     dofFolder.add(postProcessingParams.blurSize, "value", 1, 10, 1).name("Blur Size");
     dofFolder.add(postProcessingParams.blurSpread, "value", 1, 10, 1).name("Blur Spread");
+
     if (bloomNode) {
         const bloomFolder = gui.addFolder("Bloom");
         bloomFolder.add(bloomNode.strength, "value", 0, 2).name("Strength");
@@ -463,9 +509,6 @@ function setupGUI() {
 }
 
 function onWindowResize() {
-    // const activeSceneData = scenes[targetSceneIndex];
-    // activeSceneData.camera.aspect = window.innerWidth / window.innerHeight;
-    // activeSceneData.camera.updateProjectionMatrix();
     scenes.forEach(sceneData => {
         sceneData.camera.aspect = window.innerWidth / window.innerHeight;
         sceneData.camera.updateProjectionMatrix();
@@ -483,6 +526,7 @@ function onMouseDown(event: PointerEvent) {
     clickPos.x = (event.clientX / window.innerWidth) * 2 - 1;
     clickPos.y = (event.clientY / window.innerHeight) * 2 - 1;
 }
+
 let timerId: number | null = null;
 function onMouseUp(event: MouseEvent) {
     if (Date.now() - lastClickedTime < 300 && !timerId) {
@@ -502,27 +546,20 @@ async function render() {
     if (!scenesInitialized) return;
 
     const activeSceneData = scenes[activeSceneIndex];
-    // if (activeSceneData.controls) activeSceneData.controls.update();
-    // We update the stands AFTER we determine which one is selected.
 
     if (activeSceneData.raycaster) {
         activeSceneData.raycaster.setFromCamera(dofParams.pointerCoords, activeSceneData.camera);
-
         const intersects = activeSceneData.raycaster.intersectObjects(
             activeSceneData.scene.children,
             true
         );
-
         let hoveredStand = null;
 
         if (intersects.length > 0) {
-            // Find the top-level stand group that was intersected
             let intersectedObject = intersects[0].object;
             while (intersectedObject) {
                 if (intersectedObject.userData.isStand) {
                     hoveredStand = intersectedObject.userData.parentStand;
-
-                    // Update the isSelected state for ALL stands in the scene
                     activeSceneData.stands.forEach(stand => {
                         stand.isSelected = stand === hoveredStand;
                     });
@@ -544,44 +581,24 @@ async function render() {
             }
         }
 
-        // --- DOF Logic (can be combined with hover detection) ---
         if (hoveredStand) {
-            // If hovering a stand, focus on the intersection point
             dofParams.targetFocusPoint.copy(intersects[0].point);
         } else {
-            // Otherwise, focus on the camera's target
             dofParams.targetFocusPoint.copy(activeSceneData.controls.target);
         }
 
-        // if (activeSceneIndex === 0) {
-        //     if (hoveredStand) {
-        //         uiManager.showMessage({
-        //             id: "hover-info",
-        //             content: `Click to view Stand ${hoveredStand.id}`,
-        //             side: "right",
-        //             persistent: true, // Keep it visible while hovering
-        //         });
-        //     } else {
-        //         // If not hovering over anything, hide the message
-        //         uiManager.hideMessage("hover-info");
-        //     }
-        // }
-
         dofParams.focusPoint.lerp(dofParams.targetFocusPoint, deltaTime * 5);
-
         focusPointInViewSpace.copy(dofParams.focusPoint);
         activeSceneData.camera.worldToLocal(focusPointInViewSpace);
         dofParams.focusDistance.value = focusPointInViewSpace.z;
     }
 
-    // Now update all stands. The correct one will show its selected state.
     if (activeSceneData.stands) {
         activeSceneData.stands.forEach(stand => stand.update(deltaTime, activeSceneData.camera));
     }
 
     if (activeSceneData.environment) activeSceneData.environment.update(deltaTime);
 
-    // Render the scene with post-processing
     if (postprocessing) {
         await postprocessing.renderAsync();
     }
