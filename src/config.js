@@ -34,7 +34,7 @@ export const glassSettings = {
     transmission: uniform(1.0),
     thickness: uniform(1.5),
     roughness: uniform(0.0),
-    ior: uniform(1.15),
+    ior: uniform(1.05),
     metalness: uniform(0.0),
     clearcoat: uniform(1.0),
     clearcoatRoughness: uniform(0.1),
@@ -110,12 +110,13 @@ export const dofParams = {
 
 // --- Asset Paths ---
 export const transitionTexturePaths = [
-    "/textures/transition/transition1.png",
-    "/textures/transition/transition2.png",
-    "/textures/transition/transition3.png",
-    "/textures/transition/transition4.png",
-    "/textures/transition/transition5.png",
-    "/textures/transition/transition6.png",
+    "/textures/transition/transition7.jpg",
+    // "/textures/transition/transition1.png",
+    // "/textures/transition/transition2.png",
+    // "/textures/transition/transition3.png",
+    // "/textures/transition/transition4.png",
+    // "/textures/transition/transition5.png",
+    // "/textures/transition/transition6.png",
 ];
 
 export const hdrPath = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venice_sunset_1k.hdr";

@@ -19,6 +19,9 @@ export class AwwordStand {
         this.mesh.userData.parentStand = this;
         this.isSelected = false;
         this.id = sceneIndex;
+
+        // Target scale for the cylinder VFX
+        this.targetScale = new THREE.Vector3(1, 1, 1);
     }
 
     createStand() {
@@ -68,10 +71,12 @@ export class AwwordStand {
         const imageTexture = textureLoader.load(this.texturePath);
         imageTexture.flipY = true;
 
-        const planeMaterial = new THREE.MeshStandardNodeMaterial({
+        const planeMaterial = new THREE.MeshBasicNodeMaterial({
             side: THREE.DoubleSide,
             colorNode: texture(imageTexture),
             roughness: 0.5,
+            metalness: 0.2,
+            blending: THREE.MultiplyBlending,
         });
 
         const planeSize = this.radius * 0.8;
@@ -149,7 +154,11 @@ export class AwwordStand {
 
         const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
         cylinderMesh.position.y = cylinderHeight / 2; // Position it correctly on the stand
-        cylinderMesh.visible = false; // Initially hidden
+
+        // MODIFICATION: Set initial scale to 0 and ensure it's visible
+        cylinderMesh.scale.set(0, 0, 0);
+        cylinderMesh.visible = true; // Always visible, scaling will handle appearance
+
         this.cylinderMesh = cylinderMesh;
         standGroup.add(cylinderMesh);
 
@@ -158,7 +167,7 @@ export class AwwordStand {
         audioManager.loadPositionalSound("energy-hum", energyWaveSoundPath, () => {
             audioManager.setBufferToSound(this.waveSound, "energy-hum");
             this.waveSound.setLoop(true);
-            this.waveSound.setVolume(0.25);
+            this.waveSound.setVolume(0.15);
         });
 
         standGroup.add(this.waveSound);
@@ -182,12 +191,29 @@ export class AwwordStand {
         // --- VFX and Sound Visibility ---
         const isVisible = this.isSelected;
         this.waveMesh.visible = isVisible;
-        this.cylinderMesh.visible = isVisible;
 
-        if (isVisible && this.waveSound && !this.waveSound.isPlaying) {
-            this.waveSound.play();
-        } else if (!isVisible && this.waveSound && this.waveSound.isPlaying) {
-            this.waveSound.stop();
+        // --- Update target scale and lerp the cylinder scale ---
+        if (isVisible) {
+            this.targetScale.set(1, 1, 1);
+        } else {
+            this.targetScale.set(1, 0, 1);
         }
+
+        // Smoothly interpolate the cylinder's scale towards the target scale
+        this.cylinderMesh.scale.lerp(this.targetScale, deltaTime * 5);
+
+        // Optimization: If the cylinder is tiny, hide it completely.
+        if (this.cylinderMesh.scale.x < 0.01) {
+            this.cylinderMesh.visible = false;
+        } else {
+            this.cylinderMesh.visible = true;
+        }
+
+        // --- Sound Control ---
+        // if (isVisible && this.waveSound && !this.waveSound.isPlaying) {
+        //     this.waveSound.play();
+        // } else if (!isVisible && this.waveSound && this.waveSound.isPlaying) {
+        //     this.waveSound.stop();
+        // }
     }
 }

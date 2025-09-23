@@ -2,9 +2,10 @@ import * as THREE from "three/webgpu";
 import { vec3, vec4, mix, uniform, reflector, Fn, color, texture, uv, vec2 } from "three/tsl";
 
 export class Environment {
-    constructor(floorDiffuseMap, floorNormalMap) {
+    constructor(floorDiffuseMap, floorNormalMap, videoTexture) {
         this.floorDiffuseMap = floorDiffuseMap;
         this.floorNormalMap = floorNormalMap;
+        this.videoTexture = videoTexture; // Store the video texture
         this.mesh = this.createRoom();
     }
 
@@ -65,6 +66,17 @@ export class Environment {
         const wallsAndCeilingMesh = new THREE.Mesh(roomGeometry, roomMaterial);
         wallsAndCeilingMesh.position.y = roomSize.height / 2 - 0.01; // Lower slightly to avoid z-fighting
         roomGroup.add(wallsAndCeilingMesh);
+
+        // --- Video Screen ---
+        const videoScreenGeometry = new THREE.PlaneGeometry(8, 4.5); // 16:9 aspect ratio
+        const videoScreenMaterial = new THREE.MeshBasicNodeMaterial({
+            map: this.videoTexture,
+        });
+        const videoScreen = new THREE.Mesh(videoScreenGeometry, videoScreenMaterial);
+
+        // Position on the back wall
+        videoScreen.position.set(0, roomSize.height / 2, -roomSize.depth / 2 + 0.05);
+        roomGroup.add(videoScreen);
 
         // --- Expose controls for GUI ---
         this.floorReflection = {

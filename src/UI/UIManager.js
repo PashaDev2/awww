@@ -214,7 +214,7 @@ class UIManager {
             transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
             opacity: 0;
             text-shadow: 0 0 6px var(--text-shadow-color);
-            clip-path: polygon(0% 0%, 96% 0%, 100% 30%, 100% 100%, 4% 100%, 0% 70%);
+            // clip-path: polygon(0% 0%, 96% 0%, 100% 30%, 100% 100%, 4% 100%, 0% 70%);
         }
         
         .ui-message-left {
@@ -257,7 +257,7 @@ class UIManager {
         }
         .close-button:hover {
             color: var(--close-button-hover-color);
-            transform: rotate(180deg) scale(1.1);
+            transform: scale(1.1);
             text-shadow: 0 0 12px var(--close-button-hover-shadow-color);
         }
         `;

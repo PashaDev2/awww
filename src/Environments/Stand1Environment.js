@@ -12,7 +12,7 @@ export class Stand1Environment {
     createRoom() {
         const roomGroup = new THREE.Group();
 
-        const directionalLight = new THREE.DirectionalLight("#005b96", 0.25); // Soft blueish, low intensity
+        const directionalLight = new THREE.DirectionalLight("red", 0.25); // Soft blueish, low intensity
         directionalLight.position.set(5, 10, 7);
         directionalLight.castShadow = true;
         directionalLight.shadow.mapSize.width = 1024;
@@ -54,7 +54,7 @@ export class Stand1Environment {
         const floorDiffuseColor = texture(this.floorDiffuseMap, floorUV);
 
         // Mix the base color with the reflection, and add a tint of color to the water
-        const waterColor = new THREE.Color("#005eb8"); // A blue tint for the water
+        const waterColor = new THREE.Color("red"); // A blue tint for the water
         const baseColor = mix(floorDiffuseColor, waterColor, 0.5);
         floorMaterial.colorNode = mix(baseColor, reflection, reflection.a);
 
@@ -95,6 +95,10 @@ export class Stand1Environment {
             // For each mesh, calculate a new random position in the donut area
             const angle = Math.random() * Math.PI * 2;
             const radius = innerRadius + Math.random() * (outerRadius - innerRadius);
+
+            if (child.name.includes("Tree")) {
+                console.log(child);
+            }
 
             child.position.set(
                 Math.cos(angle) * radius,

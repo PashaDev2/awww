@@ -30,7 +30,10 @@ class AudioManager {
     }
 
     play2DSound(name) {
-        if (this.sounds2D[name] && !this.sounds2D[name].playing()) {
+        if (this.sounds2D[name]) {
+            if (this.sounds2D[name].playing()) {
+                this.sounds2D[name].stop();
+            }
             this.sounds2D[name].play();
         }
     }
