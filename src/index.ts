@@ -154,8 +154,8 @@ document.addEventListener("DOMContentLoaded", () => {
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 0.5;
 
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        // renderer.shadowMap.enabled = true;
+        // renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
         document.body.appendChild(renderer.domElement);
         document.body.appendChild(stats.dom);
@@ -502,13 +502,13 @@ document.addEventListener("DOMContentLoaded", () => {
         projectorLight.decay = 2;
         projectorLight.distance = 0;
 
-        projectorLight.castShadow = true;
-        projectorLight.shadow.mapSize.width = 1024;
-        projectorLight.shadow.mapSize.height = 1024;
-        projectorLight.shadow.camera.near = 1;
-        projectorLight.shadow.camera.far = 10;
-        projectorLight.shadow.focus = 1;
-        projectorLight.shadow.bias = -0.003;
+        // projectorLight.castShadow = true;
+        // projectorLight.shadow.mapSize.width = 1024;
+        // projectorLight.shadow.mapSize.height = 1024;
+        // projectorLight.shadow.camera.near = 1;
+        // projectorLight.shadow.camera.far = 10;
+        // projectorLight.shadow.focus = 1;
+        // projectorLight.shadow.bias = -0.003;
         scenes[0].scene.add(projectorLight);
 
         // let lightHelper = new THREE.SpotLightHelper(projectorLight);
@@ -558,14 +558,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setupPostProcessing() {
         postprocessing = new THREE.PostProcessing(renderer);
-        if (ON_MOBILE) {
-            const pixelRatio = renderer.getPixelRatio();
-            // Render post-processing at half or quarter resolution
-            postprocessing.renderer.setSize(
-                window.innerWidth * 0.5 * pixelRatio,
-                window.innerHeight * 0.5 * pixelRatio
-            );
-        }
+
         scenes.forEach((sceneData, index) => {
             const isFirst = index === 0;
             const sPass = prepareScenePass(sceneData.scene, sceneData.camera, isFirst);
