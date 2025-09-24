@@ -207,27 +207,27 @@ export class AwwordStand {
         this.planeMesh.quaternion.slerp(targetQuaternion, deltaTime * 5);
 
         // --- VFX and Sound Visibility ---
-        const isVisible = this.isSelected;
+        // const isVisible = this.isSelected;
 
         // --- Update target scale and lerp the cylinder scale ---
-        if (isVisible) {
-            this.targetScale.set(1, 1, 1);
-        } else {
-            this.targetScale.set(0, 0, 0);
-        }
+        // if (isVisible) {
+        //     this.targetScale.set(1, 1, 1);
+        // } else {
+        //     this.targetScale.set(0, 0, 0);
+        // }
 
         // Smoothly interpolate the cylinder's scale towards the target scale
-        this.cylinderMesh.scale.lerp(this.targetScale, deltaTime * 5);
-        this.waveMesh.scale.lerp(this.targetScale, deltaTime * 5);
+        // this.cylinderMesh.scale.lerp(this.targetScale, deltaTime * 5);
+        // this.waveMesh.scale.lerp(this.targetScale, deltaTime * 5);
 
         // Optimization: If the cylinder is tiny, hide it completely.
-        if (this.cylinderMesh.scale.x < 0.01) {
-            this.cylinderMesh.visible = false;
-            this.waveMesh.visible = false;
-        } else {
-            this.cylinderMesh.visible = true;
-            this.waveMesh.visible = true;
-        }
+        // if (this.cylinderMesh.scale.x < 0.01) {
+        //     this.cylinderMesh.visible = false;
+        //     this.waveMesh.visible = false;
+        // } else {
+        //     this.cylinderMesh.visible = true;
+        //     this.waveMesh.visible = true;
+        // }
 
         // --- Sound Control ---
         // if (isVisible && this.waveSound && !this.waveSound.isPlaying) {
