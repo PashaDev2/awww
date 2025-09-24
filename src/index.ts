@@ -411,7 +411,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 skyText = assets.configTextures.skyTexture;
                 break;
             case 2:
-                environment = new Stand2Environment(
+                environment = new Stand1Environment(
                     assets.configTextures.waterNormalMap,
                     assets.configTextures.waterNormalMap,
                     assets.gltfModel,
@@ -422,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 break;
 
             case 3:
-                environment = new Stand3Environment(
+                environment = new Stand1Environment(
                     assets.configTextures.waterNormalMap,
                     assets.configTextures.waterNormalMap,
                     assets.gltfModel,

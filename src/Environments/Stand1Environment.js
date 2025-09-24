@@ -94,12 +94,8 @@ export class Stand1Environment {
         roomModelGroup.rotateY(Math.PI);
         roomGroup.add(roomModelGroup);
 
-        const light = new THREE.PointLight(0xffffff, 10, 0, 1); // Color, Intensity, Distance, Decay
-        light.position.set(0, 5, 0); // Position it above the center
-        roomGroup.add(light);
-
         const bubbleCount = 300;
-        const SPAWN_POINTS_COUNT = 1500;
+        const SPAWN_POINTS_COUNT = 300;
         const spawnPoints = [];
         for (let i = 0; i < SPAWN_POINTS_COUNT; i++) {
             const angle = Math.random() * Math.PI * 2;
@@ -160,7 +156,7 @@ export class Stand1Environment {
         bubbleMaterial.emissiveNode = particleTextureColor.mul(color("#e1c2ff")).rgb;
 
         // --- InstancedMesh Setup (Unchanged) ---
-        const particleGeometry = new THREE.PlaneGeometry(0.1, 0.1);
+        const particleGeometry = new THREE.PlaneGeometry(0.1, 0.1, 1, 1);
         this.bubbles = new THREE.InstancedMesh(particleGeometry, bubbleMaterial, bubbleCount);
         this.bubbles.geometry.setAttribute(
             "instanceRandom",
