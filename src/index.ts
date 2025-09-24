@@ -46,6 +46,17 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+    function isMobile() {
+        // You can use a more robust library, but this is a good start
+        return (
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                navigator.userAgent
+            ) || window.innerWidth < 768
+        );
+    }
+
+    const ON_MOBILE = isMobile();
+
     // --- Global Variables ---
     let renderer: THREE.WebGPURenderer,
         postprocessing: THREE.PostProcessing,
@@ -506,6 +517,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function prepareScenePass(scene: THREE.Scene, camera: THREE.Camera, isFirstScene = false) {
         const scenePass = pass(scene, camera);
+        if (ON_MOBILE) {
+            return fxaa(scenePass.getTextureNode());
+        }
+
         scenePass.setMRT(
             mrt({
                 output,
