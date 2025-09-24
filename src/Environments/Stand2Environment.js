@@ -41,7 +41,7 @@ export class Stand2Environment {
         const ambLight = new THREE.AmbientLight("#975599", 1);
         roomGroup.add(ambLight);
 
-        const roomRadius = 105;
+        const roomRadius = 25;
         const roomHeight = 10;
 
         // --- Floor ---
