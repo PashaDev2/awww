@@ -11,7 +11,7 @@ export class Environment {
 
     createRoom() {
         const roomGroup = new THREE.Group();
-        const roomSize = { width: 30, height: 8, depth: 20 };
+        const roomSize = { width: 250, height: 8, depth: 250 };
 
         // --- Floor ---
 
@@ -62,21 +62,21 @@ export class Environment {
             roughness: 0.9,
             metalness: 0.1,
         });
-        const roomGeometry = new THREE.BoxGeometry(roomSize.width, roomSize.height, roomSize.depth);
-        const wallsAndCeilingMesh = new THREE.Mesh(roomGeometry, roomMaterial);
-        wallsAndCeilingMesh.position.y = roomSize.height / 2 - 0.01; // Lower slightly to avoid z-fighting
-        roomGroup.add(wallsAndCeilingMesh);
+        // const roomGeometry = new THREE.BoxGeometry(roomSize.width, roomSize.height, roomSize.depth);
+        // const wallsAndCeilingMesh = new THREE.Mesh(roomGeometry, roomMaterial);
+        // wallsAndCeilingMesh.position.y = roomSize.height / 2 - 0.01; // Lower slightly to avoid z-fighting
+        // roomGroup.add(wallsAndCeilingMesh);
 
         // --- Video Screen ---
-        const videoScreenGeometry = new THREE.PlaneGeometry(8, 4.5); // 16:9 aspect ratio
-        const videoScreenMaterial = new THREE.MeshBasicNodeMaterial({
-            map: this.videoTexture,
-        });
-        const videoScreen = new THREE.Mesh(videoScreenGeometry, videoScreenMaterial);
+        // const videoScreenGeometry = new THREE.PlaneGeometry(8, 4.5); // 16:9 aspect ratio
+        // const videoScreenMaterial = new THREE.MeshBasicNodeMaterial({
+        //     map: this.videoTexture,
+        // });
+        // const videoScreen = new THREE.Mesh(videoScreenGeometry, videoScreenMaterial);
 
-        // Position on the back wall
-        videoScreen.position.set(0, roomSize.height / 2, -roomSize.depth / 2 + 0.05);
-        roomGroup.add(videoScreen);
+        // // Position on the back wall
+        // videoScreen.position.set(0, roomSize.height / 2, -roomSize.depth / 2 + 0.05);
+        // roomGroup.add(videoScreen);
 
         // --- Expose controls for GUI ---
         this.floorReflection = {

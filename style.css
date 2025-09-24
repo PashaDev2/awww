@@ -1,15 +1,8 @@
-@font-face {
-    font-family: "AcquireBold";
-    src: url("/fonts/AcquireBold-8Ma60.otf") format("opentype");
-    font-weight: normal;
-    font-style: normal;
-}
 body,
 html {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    font-family: "AcquireBold", sans-serif;
 }
 
 canvas {

@@ -204,7 +204,7 @@ class UIManager {
             color: var(--text-color);
             padding: 16px 28px;
             border-radius: 4px;
-            // font-family: "Roboto", Arial, sans-serif;
+            font-family: "Roboto", Arial, sans-serif;
             font-size: 1.1em;
             border: 1px solid var(--border-color);
             box-shadow: 0 0 20px var(--shadow-color), inset 0 0 8px var(--inset-shadow-color);

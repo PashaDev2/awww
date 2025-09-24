@@ -7,21 +7,33 @@ import { audioManager } from "../Audio/Audio"; // Import the audio manager
 const energyWaveSoundPath = "/sounds/energy-hum.mp3";
 
 export class AwwordStand {
-    constructor(position, texturePath, envMap, sceneIndex = 0) {
-        this.standHeight = 2;
-        this.radius = 1.3;
+    constructor({
+        position,
+        texturePath,
+        envMap,
+        sceneIndex = 0,
+        baseNormalTexture,
+        baseTexture,
+        baseMetalTexture,
+        height = 2,
+        radius = 1.5,
+    }) {
+        this.standHeight = height;
+        this.radius = radius;
         this.texturePath = texturePath;
         this.envMap = envMap;
+        this.baseNormalTexture = baseNormalTexture;
+        this.baseMetalTexture = baseMetalTexture;
+        this.baseTexture = baseTexture;
+        this.isSelected = false;
+        this.id = sceneIndex;
+        // Target scale for the cylinder VFX
+        this.targetScale = new THREE.Vector3(1, 1, 1);
         this.mesh = this.createStand();
         this.mesh.position.copy(position);
         this.mesh.userData.isStand = true;
         this.mesh.userData.sceneIndex = sceneIndex;
         this.mesh.userData.parentStand = this;
-        this.isSelected = false;
-        this.id = sceneIndex;
-
-        // Target scale for the cylinder VFX
-        this.targetScale = new THREE.Vector3(1, 1, 1);
     }
 
     createStand() {
@@ -32,9 +44,12 @@ export class AwwordStand {
         const topHeight = this.standHeight * (3 / 4);
 
         // Base Material
-        const baseMaterial = new THREE.MeshPhysicalNodeMaterial({
-            metalness: 0.1,
-            roughness: 0.7,
+        const baseMaterial = new THREE.MeshStandardNodeMaterial({
+            metalness: 0.8,
+            roughness: 0.1,
+            normalMap: this.baseNormalTexture,
+            map: this.baseTexture,
+            metalnessMap: this.baseMetalTexture,
         });
         baseMaterial.colorNode = vec3(0, 0, 0);
 
@@ -55,10 +70,15 @@ export class AwwordStand {
             opacityNode: glassSettings.opacity,
             side: THREE.FrontSide,
             transparent: false,
+            depthWrite: false,
         });
 
         // Base Geometry
-        const baseGeometry = new THREE.BoxGeometry(this.radius, baseHeight, this.radius);
+        const baseGeometry = new THREE.BoxGeometry(
+            this.radius + 0.5,
+            baseHeight,
+            this.radius + 0.5
+        );
         const baseMesh = new THREE.Mesh(baseGeometry, baseMaterial);
         baseMesh.position.y = baseHeight / 2.1;
 
@@ -74,9 +94,7 @@ export class AwwordStand {
         const planeMaterial = new THREE.MeshBasicNodeMaterial({
             side: THREE.DoubleSide,
             colorNode: texture(imageTexture),
-            roughness: 0.5,
-            metalness: 0.2,
-            blending: THREE.MultiplyBlending,
+            // blending: THREE.MultiplyBlending,
         });
 
         const planeSize = this.radius * 0.8;
@@ -112,7 +130,7 @@ export class AwwordStand {
 
         waveMaterial.positionNode = pulseFn();
 
-        const waveGeometry = new THREE.RingGeometry(this.radius * 0.9, this.radius * 1.0, 64);
+        const waveGeometry = new THREE.RingGeometry(this.radius * 0.95, this.radius * 1.05, 64);
         const waveMesh = new THREE.Mesh(waveGeometry, waveMaterial);
         waveMesh.visible = false;
         waveMesh.rotation.x = -Math.PI / 2;
@@ -123,7 +141,7 @@ export class AwwordStand {
 
         // --- Cylinder Aura VFX (using TSL) ---
         const cylinderHeight = this.standHeight * 0.3; // Adjusted height for better visual effect
-        const cylinderRadius = this.radius;
+        const cylinderRadius = this.radius * 1.1;
         const cylinderGeometry = new THREE.CylinderGeometry(
             cylinderRadius,
             cylinderRadius,
@@ -135,7 +153,7 @@ export class AwwordStand {
 
         const cylinderMaterial = new THREE.MeshBasicNodeMaterial({
             transparent: true,
-            blending: THREE.AdditiveBlending,
+            // blending: THREE.AdditiveBlending,
             side: THREE.DoubleSide,
             depthWrite: false, // Important for correct blending of transparent objects
         });
@@ -190,23 +208,25 @@ export class AwwordStand {
 
         // --- VFX and Sound Visibility ---
         const isVisible = this.isSelected;
-        this.waveMesh.visible = isVisible;
 
         // --- Update target scale and lerp the cylinder scale ---
         if (isVisible) {
             this.targetScale.set(1, 1, 1);
         } else {
-            this.targetScale.set(1, 0, 1);
+            this.targetScale.set(0, 0, 0);
         }
 
         // Smoothly interpolate the cylinder's scale towards the target scale
         this.cylinderMesh.scale.lerp(this.targetScale, deltaTime * 5);
+        this.waveMesh.scale.lerp(this.targetScale, deltaTime * 5);
 
         // Optimization: If the cylinder is tiny, hide it completely.
         if (this.cylinderMesh.scale.x < 0.01) {
             this.cylinderMesh.visible = false;
+            this.waveMesh.visible = false;
         } else {
             this.cylinderMesh.visible = true;
+            this.waveMesh.visible = true;
         }
 
         // --- Sound Control ---
