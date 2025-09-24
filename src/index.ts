@@ -558,6 +558,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function setupPostProcessing() {
         postprocessing = new THREE.PostProcessing(renderer);
+        if (ON_MOBILE) {
+            const pixelRatio = renderer.getPixelRatio();
+            // Render post-processing at half or quarter resolution
+            postprocessing.renderer.setSize(
+                window.innerWidth * 0.5 * pixelRatio,
+                window.innerHeight * 0.5 * pixelRatio
+            );
+        }
         scenes.forEach((sceneData, index) => {
             const isFirst = index === 0;
             const sPass = prepareScenePass(sceneData.scene, sceneData.camera, isFirst);
