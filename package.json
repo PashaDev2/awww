@@ -16,7 +16,6 @@
     },
     "dependencies": {
         "howler": "^2.2.4",
-        "three": "^0.180.0",
-        "three-gif-texture": "^1.0.15"
+        "three": "^0.180.0"
     }
 }

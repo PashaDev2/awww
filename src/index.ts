@@ -25,7 +25,6 @@ import { audioManager } from "./Audio/Audio.js";
 import { uiManager } from "./UI/UIManager.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
-import { GIFTexture } from "three-gif-texture";
 
 document.addEventListener("DOMContentLoaded", () => {
     // --- Global Variables ---
@@ -33,8 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
         postprocessing: THREE.PostProcessing,
         bloomNode: any,
         transitionEffect: any;
-
-    let gifTexture: GIFTexture;
 
     // This object will hold all our loaded assets
     const assets = {
@@ -663,10 +660,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (activeSceneData.environment) activeSceneData.environment.update(deltaTime);
-
-        if (gifTexture) {
-            gifTexture.draw();
-        }
 
         if (postprocessing) {
             await postprocessing.renderAsync();
