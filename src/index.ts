@@ -742,6 +742,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    let pointerMoved = false;
+
     function onWindowResize() {
         scenes.forEach(sceneData => {
             sceneData.camera.aspect = window.innerWidth / window.innerHeight;
@@ -753,6 +755,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function onPointerMove(event: PointerEvent) {
         dofParams.pointerCoords.x = (event.clientX / window.innerWidth) * 2 - 1;
         dofParams.pointerCoords.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        pointerMoved = true;
     }
 
     function onMouseDown(event: PointerEvent) {
@@ -831,7 +834,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        if (activeSceneData.raycaster) {
+        if (activeSceneData.raycaster && pointerMoved) {
             activeSceneData.raycaster.setFromCamera(
                 dofParams.pointerCoords,
                 activeSceneData.camera
