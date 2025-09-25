@@ -80,7 +80,7 @@ const transitionController = {
     _transition: uniform(0),
     useTexture: true,
     _useTexture: uniform(1),
-    texture: 1,
+    texture: 0,
     threshold: uniform(0.3),
 };
 
@@ -206,10 +206,11 @@ function createMainScene() {
         rate: 0.75,
     });
 
-    const environment = new Environment(
-        assets.configTextures.normalMap,
-        assets.configTextures.normalMap
-    );
+    const environment = new Environment({
+        floorDiffuseMap: assets.configTextures.normalMap,
+        floorNormalMap: assets.configTextures.normalMap,
+        gui,
+    });
     scene.add(environment.mesh);
 
     const stands = standConfigurations.map((config, idx) => {
@@ -380,7 +381,7 @@ function setupPostProcessing() {
     transitionPost = new THREE.PostProcessing(renderer);
     transitionTexture = texture(assets.transitionTextures[transitionController.texture]);
 
-    transitionPost.outputNode = transition(
+    const transitionNode = transition(
         texture(fromSceneTarget.texture),
         texture(toSceneTarget.texture),
         transitionTexture,
@@ -388,6 +389,7 @@ function setupPostProcessing() {
         transitionController.threshold,
         transitionController._useTexture
     );
+    transitionPost.outputNode = transitionNode;
 }
 
 function startTransition(target) {
@@ -588,7 +590,7 @@ function setupGUI() {
         .add(controlsConfig, "useOrbitControls")
         .name("Enable Orbit Controls")
         .onChange(toggleOrbitControls);
-    controlsFolder.open();
+    controlsFolder.close();
 
     const sceneFolder = gui.addFolder("Scene Control");
     sceneFolder
@@ -615,9 +617,10 @@ function setupGUI() {
             );
         });
 
-    sceneFolder.open();
+    sceneFolder.close();
 
     const glassFolder = gui.addFolder("Glass");
+    glassFolder.close();
     glassFolder.add(glassSettings.transmission, "value", 0, 1, 0.01).name("Transmission");
     glassFolder.addColor(glassSettings.color, "value").name("Color");
     glassFolder.add(glassSettings.ior, "value", 1, 2.333, 0.01).name("IOR");
@@ -640,6 +643,7 @@ function setupGUI() {
 
     if (!ON_MOBILE) {
         const dofFolder = gui.addFolder("DOF");
+        dofFolder.close();
         dofFolder.add(postProcessingParams.minDistance, "value", 0, 10).name("Min Distance");
         dofFolder.add(postProcessingParams.maxDistance, "value", 0, 10).name("Max Distance");
         dofFolder.add(postProcessingParams.blurSize, "value", 1, 10, 1).name("Blur Size");
@@ -647,6 +651,7 @@ function setupGUI() {
 
         if (bloomNode) {
             const bloomFolder = gui.addFolder("Bloom");
+            bloomFolder.close();
             bloomFolder.add(bloomNode.strength, "value", 0, 2).name("Strength");
             bloomFolder.add(bloomNode.radius, "value", 0, 2).name("Radius");
             bloomFolder.add(bloomNode.threshold, "value", 0, 2).name("Threshold");

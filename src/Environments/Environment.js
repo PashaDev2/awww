@@ -2,11 +2,15 @@ import * as THREE from "three/webgpu";
 import { vec3, vec4, mix, uniform, reflector, Fn, color, texture, uv, vec2 } from "three/tsl";
 
 export class Environment {
-    constructor(floorDiffuseMap, floorNormalMap, videoTexture) {
+    constructor({ floorDiffuseMap, floorNormalMap, gui }) {
         this.floorDiffuseMap = floorDiffuseMap;
         this.floorNormalMap = floorNormalMap;
-        this.videoTexture = videoTexture; // Store the video texture
+        this.gui = gui;
         this.mesh = this.createRoom();
+
+        if (this.gui) {
+            this.createGUI();
+        }
     }
 
     createRoom() {
@@ -16,19 +20,19 @@ export class Environment {
         // --- Floor ---
 
         // 1. Create the reflector which will capture the scene for reflection
-        const reflection = reflector({ resolutionScale: 0.5 }); // Use a fixed resolution
-        reflection.target.rotateX(-Math.PI / 2); // Orient the reflector to look down
+        const reflection = reflector({ resolutionScale: 0.5 });
+        reflection.target.rotateX(-Math.PI / 2);
         roomGroup.add(reflection.target);
 
         // 2. Define uniforms and nodes for material customization
         const roughness = uniform(0.5);
         const normalScale = uniform(2.5);
-        const floorUV = uv().mul(1); // Repeated UVs for the floor texture
+        const floorUV = uv().mul(1);
 
         // 3. Use the normal map to distort the reflection's UV coordinates
         const floorNormalMapTex = texture(this.floorNormalMap, floorUV);
         const floorNormalOffset = floorNormalMapTex.xy.mul(2).sub(1).mul(normalScale);
-        reflection.uvNode = reflection.uvNode.add(floorNormalOffset); // Apply distortion here
+        reflection.uvNode = reflection.uvNode.add(floorNormalOffset);
 
         // 4. Create the floor material using MeshStandardNodeMaterial for PBR properties
         const floorMaterial = new THREE.MeshStandardNodeMaterial({
@@ -37,14 +41,8 @@ export class Environment {
 
         // 5. Define the material's appearance using TSL nodes
         const floorDiffuseColor = texture(this.floorDiffuseMap, floorUV);
-
-        // The color is a mix of the diffuse texture and the sharp reflection
         floorMaterial.colorNode = mix(floorDiffuseColor, reflection, reflection.a);
-
-        // The emissive channel makes the reflection glow
-        floorMaterial.emissiveNode = reflection.mul(0.1); // Adjust intensity as needed
-
-        // Apply the normal map to the material itself for lighting calculations
+        floorMaterial.emissiveNode = reflection.mul(0.1);
         floorMaterial.normalMapNode = floorNormalMapTex;
         floorMaterial.normalScaleNode = vec2(normalScale);
 
@@ -52,7 +50,6 @@ export class Environment {
         const floorGeometry = new THREE.PlaneGeometry(roomSize.width, roomSize.depth);
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2;
-        // floor.receiveShadow = true;
         roomGroup.add(floor);
 
         // --- Walls and Ceiling ---
@@ -62,21 +59,6 @@ export class Environment {
             roughness: 0.9,
             metalness: 0.1,
         });
-        // const roomGeometry = new THREE.BoxGeometry(roomSize.width, roomSize.height, roomSize.depth);
-        // const wallsAndCeilingMesh = new THREE.Mesh(roomGeometry, roomMaterial);
-        // wallsAndCeilingMesh.position.y = roomSize.height / 2 - 0.01; // Lower slightly to avoid z-fighting
-        // roomGroup.add(wallsAndCeilingMesh);
-
-        // --- Video Screen ---
-        // const videoScreenGeometry = new THREE.PlaneGeometry(8, 4.5); // 16:9 aspect ratio
-        // const videoScreenMaterial = new THREE.MeshBasicNodeMaterial({
-        //     map: this.videoTexture,
-        // });
-        // const videoScreen = new THREE.Mesh(videoScreenGeometry, videoScreenMaterial);
-
-        // // Position on the back wall
-        // videoScreen.position.set(0, roomSize.height / 2, -roomSize.depth / 2 + 0.05);
-        // roomGroup.add(videoScreen);
 
         // --- Expose controls for GUI ---
         this.floorReflection = {
@@ -86,6 +68,12 @@ export class Environment {
         };
 
         return roomGroup;
+    }
+
+    createGUI() {
+        const folder = this.gui.addFolder("Floor Reflection");
+        folder.add(this.floorReflection.roughness, "value", 0, 1).name("Roughness");
+        folder.add(this.floorReflection.normalScale, "value", 0, 5).name("Normal Scale");
     }
 
     update(deltaTime) {
