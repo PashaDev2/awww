@@ -207,7 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
             rate: 0.75,
         });
 
-        debugger;
         const environment = new Environment(
             assets.configTextures.normalMap,
             assets.configTextures.normalMap
