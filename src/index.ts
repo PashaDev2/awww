@@ -65,6 +65,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let sky, sun;
 
+    const gui = new GUI();
+
     // This object will hold all our loaded assets
     const assets = {
         hdrMap: null,
@@ -385,6 +387,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const initialCameraQuaternion = camera.quaternion.clone();
         const initialCameraPosition = camera.position.clone();
 
+        // const depthTarget = new THREE.RenderTarget(window.innerWidth, window.innerHeight);
+        // depthTarget.depthTexture = new THREE.DepthTexture(window.innerWidth, window.innerHeight);
+        // depthTarget.depthTexture.type = THREE.UnsignedShortType;
+
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.target.set(0, 1, 0);
         controls.update();
@@ -406,7 +412,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     assets.configTextures.waterNormalMap,
                     assets.configTextures.waterNormalMap,
                     assets.gltfModel,
-                    assets.configTextures.particleTexture
+                    assets.configTextures.particleTexture,
+                    gui
                 );
                 skyText = assets.configTextures.skyTexture;
                 break;
@@ -415,7 +422,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     assets.configTextures.waterNormalMap,
                     assets.configTextures.waterNormalMap,
                     assets.gltfModel,
-                    assets.configTextures.particleTexture
+                    assets.configTextures.particleTexture,
+                    gui
                 );
                 skyText = assets.configTextures.skyTexture2;
 
@@ -426,7 +434,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     assets.configTextures.waterNormalMap,
                     assets.configTextures.waterNormalMap,
                     assets.gltfModel,
-                    assets.configTextures.particleTexture
+                    assets.configTextures.particleTexture,
+                    gui
                 );
                 skyText = assets.configTextures.skyTexture3;
                 break;
@@ -468,6 +477,7 @@ document.addEventListener("DOMContentLoaded", () => {
             environment,
             initialCameraQuaternion,
             initialCameraPosition,
+            // depthTarget,
         };
     }
 
@@ -676,7 +686,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupGUI() {
-        const gui = new GUI();
         gui.close();
 
         // --- New Controls Folder ---
@@ -784,6 +793,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const activeSceneData = scenes[activeSceneIndex];
 
+        // if (activeSceneData) {
+        //     renderer.setRenderTarget(activeSceneData.depthTarget);
+        //     renderer.render(activeSceneData.scene, activeSceneData.camera);
+        // }
+
         // --- Camera Control Logic ---
         if (controlsConfig.useOrbitControls) {
             if (!activeSceneData.controls.enabled) {
@@ -890,9 +904,10 @@ document.addEventListener("DOMContentLoaded", () => {
             );
         }
 
-        if (activeSceneData.environment) activeSceneData.environment.update(deltaTime);
+        if (activeSceneData.environment)
+            activeSceneData.environment.update(renderer, activeSceneData.scene);
 
-        if (postprocessing) {
+        if (postprocessing && activeSceneData) {
             await postprocessing.renderAsync();
         }
     }

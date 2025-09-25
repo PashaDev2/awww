@@ -16,6 +16,7 @@
     },
     "dependencies": {
         "howler": "^2.2.4",
-        "three": "^0.180.0"
+        "three": "^0.180.0",
+        "tsl-textures": "^2.2.0"
     }
 }
