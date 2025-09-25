@@ -28,6 +28,7 @@ import {
     modelWorldMatrix,
     uniform,
 } from "three/tsl";
+import { REFLECTION_LAYER } from "../config";
 
 export class Stand1Environment {
     constructor(floorDiffuseMap, floorNormalMap, gltfModel, particleTexture, gui) {
@@ -83,10 +84,20 @@ export class Stand1Environment {
 
         const floorGeometry = new THREE.CircleGeometry(roomRadius, 32);
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        // floor.layers.set(REFLECTION_LAYER);
         floor.rotation.x = -Math.PI / 2;
         floor.position.y = -0.45;
         floor.receiveShadow = false;
         roomGroup.add(floor);
+
+        reflection.target.onBeforeRender = (renderer, scene, camera) => {
+            floor.visible = false;
+        };
+
+        // And this makes it visible again for the main scene render.
+        reflection.target.onAfterRender = (renderer, scene, camera) => {
+            floor.visible = true;
+        };
 
         // --- Model with Foam Effect ---
         // Clone the entire model to avoid modifying the original asset

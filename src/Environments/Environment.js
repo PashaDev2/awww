@@ -11,7 +11,7 @@ export class Environment {
 
     createRoom() {
         const roomGroup = new THREE.Group();
-        const roomSize = { width: 250, height: 8, depth: 250 };
+        const roomSize = { width: 50, height: 8, depth: 50 };
 
         // --- Floor ---
 
@@ -21,9 +21,9 @@ export class Environment {
         roomGroup.add(reflection.target);
 
         // 2. Define uniforms and nodes for material customization
-        const roughness = uniform(0.9);
-        const normalScale = uniform(0.6);
-        const floorUV = uv().mul(15); // Repeated UVs for the floor texture
+        const roughness = uniform(0.5);
+        const normalScale = uniform(2.5);
+        const floorUV = uv().mul(1); // Repeated UVs for the floor texture
 
         // 3. Use the normal map to distort the reflection's UV coordinates
         const floorNormalMapTex = texture(this.floorNormalMap, floorUV);
@@ -32,7 +32,7 @@ export class Environment {
 
         // 4. Create the floor material using MeshStandardNodeMaterial for PBR properties
         const floorMaterial = new THREE.MeshStandardNodeMaterial({
-            side: THREE.DoubleSide,
+            // side: THREE.DoubleSide,
         });
 
         // 5. Define the material's appearance using TSL nodes
@@ -42,7 +42,7 @@ export class Environment {
         floorMaterial.colorNode = mix(floorDiffuseColor, reflection, reflection.a);
 
         // The emissive channel makes the reflection glow
-        floorMaterial.emissiveNode = reflection.mul(0.01); // Adjust intensity as needed
+        floorMaterial.emissiveNode = reflection.mul(0.1); // Adjust intensity as needed
 
         // Apply the normal map to the material itself for lighting calculations
         floorMaterial.normalMapNode = floorNormalMapTex;
@@ -52,7 +52,7 @@ export class Environment {
         const floorGeometry = new THREE.PlaneGeometry(roomSize.width, roomSize.depth);
         const floor = new THREE.Mesh(floorGeometry, floorMaterial);
         floor.rotation.x = -Math.PI / 2;
-        floor.receiveShadow = true;
+        // floor.receiveShadow = true;
         roomGroup.add(floor);
 
         // --- Walls and Ceiling ---

@@ -119,3 +119,5 @@ transitionTexturePaths[5] = "/textures/transition/transition5.png";
 transitionTexturePaths[6] = "/textures/transition/transition6.png";
 
 export const hdrPath = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venice_sunset_1k.hdr";
+
+export const REFLECTION_LAYER = 10;
