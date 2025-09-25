@@ -138,14 +138,14 @@ function loadAssets() {
     );
 
     const textureConfigs = {
-        normalMap: "/textures/normal.jpg",
+        normalMap: "/textures/normalAsphalt.png",
         waterNormalMap: "/textures/normalWater.jpg",
         skyTexture: "/textures/sky_06_2k/sky_06_2k.png",
         skyTexture2: "/textures/sky_04_2k/sky_04_2k.png",
         skyTexture3: "/textures/sky_17_2k/sky_17_2k.png",
-        metalPlateNormal: "/textures/metal_plate/metal_plate_02_nor_gl_1k.png",
-        metalPlateMetal: "/textures/metal_plate/metal_plate_02_metal_1k.png",
-        metalPlate: "/textures/metal_plate/metal_plate_02_diff_1k.jpg",
+        // metalPlateNormal: "/textures/metal_plate/metal_plate_02_nor_gl_1k.png",
+        // metalPlateMetal: "/textures/metal_plate/metal_plate_02_metal_1k.png",
+        // metalPlate: "/textures/metal_plate/metal_plate_02_diff_1k.jpg",
         particleTexture: "/textures/T_basic1_vfx.PNG",
         env: "/textures/env3.jpg",
     };
@@ -219,9 +219,9 @@ function createMainScene() {
             texturePath: config.texturePath,
             envMap: assets.configTextures[`skyTexture${idx > 0 ? idx : ""}`],
             sceneIndex: config.id,
-            baseNormalTexture: assets.configTextures.metalPlateNormal,
-            baseTexture: assets.configTextures.metalPlate,
-            baseMetalTexture: assets.configTextures.metalPlateMetal,
+            // baseNormalTexture: assets.configTextures.metalPlateNormal,
+            // baseTexture: assets.configTextures.metalPlate,
+            // baseMetalTexture: assets.configTextures.metalPlateMetal,
             height: idx * 0.5 + 2,
         });
         scene.add(stand.mesh);
@@ -299,9 +299,9 @@ function createStandScene(standId) {
         texturePath: config.texturePath,
         envMap: skyText,
         sceneIndex: standId,
-        baseNormalTexture: assets.configTextures.metalPlateNormal,
-        baseTexture: assets.configTextures.metalPlate,
-        baseMetalTexture: assets.configTextures.metalPlateMetal,
+        // baseNormalTexture: assets.configTextures.metalPlateNormal,
+        // baseTexture: assets.configTextures.metalPlate,
+        // baseMetalTexture: assets.configTextures.metalPlateMetal,
     });
     scene.add(stand.mesh);
 

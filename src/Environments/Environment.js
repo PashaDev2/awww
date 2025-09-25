@@ -26,7 +26,7 @@ export class Environment {
 
         // 2. Define uniforms and nodes for material customization
         const roughness = uniform(0.5);
-        const normalScale = uniform(2.5);
+        const normalScale = uniform(1.5);
         const floorUV = uv().mul(1);
 
         // 3. Use the normal map to distort the reflection's UV coordinates
