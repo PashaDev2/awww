@@ -109,15 +109,15 @@ export const dofParams = {
 };
 
 // --- Asset Paths ---
-export const transitionTexturePaths = [];
-transitionTexturePaths[0] = "/textures/transition/transition7.jpg";
-transitionTexturePaths[1] = "/textures/transition/transition1.png";
-transitionTexturePaths[2] = "/textures/transition/transition2.png";
-transitionTexturePaths[3] = "/textures/transition/transition3.png";
-transitionTexturePaths[4] = "/textures/transition/transition4.png";
-transitionTexturePaths[5] = "/textures/transition/transition5.png";
-transitionTexturePaths[6] = "/textures/transition/transition6.png";
+// export const transitionTexturePaths = [];
+// transitionTexturePaths[0] = "/textures/transition/transition7.jpg";
+// transitionTexturePaths[1] = "/textures/transition/transition1.png";
+// transitionTexturePaths[2] = "/textures/transition/transition2.png";
+// transitionTexturePaths[3] = "/textures/transition/transition3.png";
+// transitionTexturePaths[4] = "/textures/transition/transition4.png";
+// transitionTexturePaths[5] = "/textures/transition/transition5.png";
+// transitionTexturePaths[6] = "/textures/transition/transition6.png";
 
-export const hdrPath = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venice_sunset_1k.hdr";
+// export const hdrPath = "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venice_sunset_1k.hdr";
 
-export const REFLECTION_LAYER = 10;
+// export const REFLECTION_LAYER = 10;

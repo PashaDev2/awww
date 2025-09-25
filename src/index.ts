@@ -25,13 +25,7 @@ import { Stand1Environment } from "./Environments/Stand1Environment.js";
 import { HDRLoader } from "three/addons/loaders/HDRLoader.js";
 import { GUI } from "three/addons/libs/lil-gui.module.min.js";
 import TWEEN from "three/addons/libs/tween.module.js";
-import {
-    dofParams,
-    glassSettings,
-    hdrPath,
-    postProcessingParams,
-    transitionTexturePaths,
-} from "./config.js";
+import { dofParams, glassSettings, postProcessingParams } from "./config.js";
 import Stats from "three/addons/libs/stats.module.js";
 import { audioManager } from "./Audio/Audio.js";
 import { uiManager } from "./UI/UIManager.js";
@@ -64,6 +58,15 @@ let activeSceneIndex = 0;
 let fromSceneIndex = 0;
 let transitionActive = false;
 let currentTransitionTween = null;
+
+const transitionTexturePaths = [];
+transitionTexturePaths[0] = "/textures/transition/transition7.jpg";
+transitionTexturePaths[1] = "/textures/transition/transition1.png";
+transitionTexturePaths[2] = "/textures/transition/transition2.png";
+transitionTexturePaths[3] = "/textures/transition/transition3.png";
+transitionTexturePaths[4] = "/textures/transition/transition4.png";
+transitionTexturePaths[5] = "/textures/transition/transition5.png";
+transitionTexturePaths[6] = "/textures/transition/transition6.png";
 
 let isClicked = false;
 const controlsConfig = { useOrbitControls: false };
@@ -131,7 +134,7 @@ function loadAssets() {
     const hdrLoader = new HDRLoader(loadingManager);
 
     gltfLoader.load("/models/env2.glb", gltf => (assets.gltfModel = gltf.scene));
-    hdrLoader.load(hdrPath, texture => (assets.hdrMap = texture));
+    // hdrLoader.load(hdrPath, texture => (assets.hdrMap = texture));
 
     transitionTexturePaths.forEach(path =>
         textureLoader.load(path, texture => assets.transitionTextures.push(texture))
@@ -161,7 +164,7 @@ function loadAssets() {
 }
 
 function onAssetsLoaded() {
-    assets.hdrMap.mapping = THREE.EquirectangularReflectionMapping;
+    // assets.hdrMap.mapping = THREE.EquirectangularReflectionMapping;
     glassSettings.envMap = assets.configTextures.env;
     setupScenes();
     setupPostProcessing();
